@@ -1,59 +1,193 @@
-// Add the player-character party to the active Scene, with optional actors from Familiar/Companion folders.
-const scene = canvas.scene;
-if (!scene) return ui.notifications.error("Open the Scene that should receive the party first.");
+(async () => {
+  const STORAGE_KEY = "gamersauruslex.add-party-to-map." + game.world.id + "." + game.user.id;
+  const scene = canvas?.scene;
 
-const party = game.actors.filter((actor) => actor.type === "character" && actor.hasPlayerOwner);
-if (!party.length) return ui.notifications.warn("No player-owned character actors were found.");
-
-const matchingFolders = game.folders.filter((folder) =>
-  folder.type === "Actor" && /\b(familiar|companion)s?\b/i.test(folder.name)
-);
-const folderActors = (folder) => game.actors.filter((actor) => {
-  for (let current = actor.folder; current; current = current.folder) {
-    if (current.id === folder.id) return true;
+  if (!game.user.isGM) {
+    return ui.notifications.warn("Only a GM can add actors to a scene.");
   }
-  return false;
-});
 
-const choices = matchingFolders.map((folder) => {
-  const count = folderActors(folder).length;
-  return `<label class="checkbox"><input type="checkbox" name="folder" value="${folder.id}"> ${foundry.utils.escapeHTML(folder.name)} (${count})</label>`;
-}).join("");
+  if (!scene) {
+    return ui.notifications.warn("Open the scene where you want to place the party first.");
+  }
 
-const selectedFolders = choices ? await foundry.applications.api.DialogV2.wait({
-  window: {title: "Add Party to Scene"},
-  content: `<p>Add the ${party.length} player characters to <strong>${foundry.utils.escapeHTML(scene.name)}</strong>.</p>
-    <p>Also include actors from these folders:</p><div class="form-group stacked-checkboxes">${choices}</div>`,
-  buttons: [
-    {action: "add", default: true, icon: "fa-solid fa-users", label: "Add Party", callback: (_event, button) => [...button.form.elements.folder].filter((input) => input.checked).map((input) => input.value)},
-    {action: "cancel", icon: "fa-solid fa-xmark", label: "Cancel", callback: () => null}
-  ]
-}) : [];
-if (selectedFolders === null) return;
+  const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (character) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;"
+  })[character]);
 
-const extras = selectedFolders.flatMap((id) => folderActors(game.folders.get(id)));
-const actors = [...new Map([...party, ...extras].map((actor) => [actor.id, actor])).values()];
-const existing = new Set(scene.tokens.map((token) => token.actorId));
-const toPlace = actors.filter((actor) => !existing.has(actor.id));
-if (!toPlace.length) return ui.notifications.info("Every selected party actor already has a token on this Scene.");
+  const readRememberedExtraIds = () => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]");
+      return Array.isArray(saved) ? saved : [];
+    } catch {
+      return [];
+    }
+  };
 
-const grid = canvas.dimensions.size;
-const center = canvas.stage.worldTransform.applyInverse({
-  x: canvas.app.renderer.screen.width / 2,
-  y: canvas.app.renderer.screen.height / 2
-});
-const columns = Math.ceil(Math.sqrt(toPlace.length));
-const startX = Math.floor(center.x / grid) * grid - Math.floor(columns / 2) * grid;
-const rows = Math.ceil(toPlace.length / columns);
-const startY = Math.floor(center.y / grid) * grid - Math.floor(rows / 2) * grid;
-const tokenData = await Promise.all(toPlace.map(async (actor, index) => {
-  const token = await actor.getTokenDocument({
-    x: startX + (index % columns) * grid,
-    y: startY + Math.floor(index / columns) * grid
+  const party = game.actors.party ?? game.actors.find((actor) => actor.type === "party");
+
+  let partyActors = Array.from(party?.members ?? [])
+    .map((member) => member?.actor ?? member)
+    .filter((actor) => actor?.documentName === "Actor");
+
+  if (!partyActors.length) {
+    partyActors = game.actors.contents.filter((actor) => actor.type === "character" && actor.hasPlayerOwner);
+
+    if (partyActors.length) {
+      ui.notifications.warn("No PF2e Party actor was found. Using player-owned character Actors instead.");
+    }
+  }
+
+  if (!partyActors.length) {
+    return ui.notifications.warn("I could not find a PF2e Party actor or any player-owned character Actors.");
+  }
+
+  const partyIds = new Set(partyActors.map((actor) => actor.id));
+
+  const folderPath = (folder) => {
+    const names = [];
+    let current = folder;
+
+    while (current) {
+      names.unshift(current.name);
+      current = current.parent ?? null;
+    }
+
+    return names.join(" / ") || "Unfoldered Actors";
+  };
+
+  const isSupplementalFolder = (actor) => /(familiar|companion)/i.test(folderPath(actor.folder));
+
+  const extraActors = game.actors.contents
+    .filter((actor) => actor.type !== "party" && !partyIds.has(actor.id) && isSupplementalFolder(actor))
+    .sort((a, b) => {
+      const folderCompare = folderPath(a.folder).localeCompare(folderPath(b.folder));
+      return folderCompare || a.name.localeCompare(b.name);
+    });
+
+  const rememberedExtraIds = new Set(readRememberedExtraIds());
+
+  const groupedExtras = extraActors.reduce((groups, actor) => {
+    const folder = folderPath(actor.folder);
+    groups[folder] ??= [];
+    groups[folder].push(actor);
+    return groups;
+  }, {});
+
+  const partyList = partyActors.map((actor) => "<li>" + escapeHtml(actor.name) + "</li>").join("");
+
+  const extraList = Object.entries(groupedExtras).map(([folder, actors]) => {
+    const actorsHtml = actors.map((actor) => {
+      const checked = rememberedExtraIds.has(actor.id) ? " checked" : "";
+      return '<label style="display: inline-flex; align-items: center; gap: 0.35rem; width: 48%; margin: 0.2rem 0;">' +
+        '<input type="checkbox" name="extraActorIds" value="' + actor.id + '"' + checked + ">" +
+        '<img src="' + escapeHtml(actor.img) + '" width="24" height="24" style="object-fit: cover; border: 0; border-radius: 3px;">' +
+        "<span>" + escapeHtml(actor.name) + "</span>" +
+      "</label>";
+    }).join("");
+
+    return '<fieldset style="margin: 0 0 0.5rem; padding: 0.5rem;">' +
+      "<legend>" + escapeHtml(folder) + "</legend>" + actorsHtml +
+    "</fieldset>";
+  }).join("");
+
+  const content = "<div>" +
+    "<p>These party members will be added from their prototype tokens:</p>" +
+    '<ul style="margin-top: 0;">' + partyList + "</ul>" +
+    "<hr>" +
+    "<p>Select any additional Actors to include—familiars, companions, thralls, mounts, summons, and so forth.</p>" +
+    '<div style="max-height: 330px; overflow-y: auto; padding-right: 0.35rem;">' +
+      (extraList || "<p><em>There are no additional Actors available.</em></p>") +
+    "</div>" +
+    "<hr>" +
+    '<label style="display: block; margin: 0.35rem 0;"><input type="checkbox" name="skipExisting" checked> Skip Actors that already have a token on this scene</label>' +
+    '<label style="display: block; margin: 0.35rem 0;"><input type="checkbox" name="rememberExtras" checked> Remember these additional Actors for my next run</label>' +
+  "</div>";
+
+  const result = await foundry.applications.api.DialogV2.wait({
+    window: {
+      title: "Add Party to Active Scene",
+      icon: "fa-solid fa-users"
+    },
+    position: { width: 760 },
+    content,
+    buttons: [
+      {
+        action: "add",
+        label: "Add Tokens",
+        icon: "fa-solid fa-plus",
+        default: true,
+        callback: (_event, button) => {
+          const form = button.form;
+          if (!form) return null;
+
+          return {
+            extraActorIds: Array.from(form.querySelectorAll('input[name="extraActorIds"]:checked')).map((input) => input.value),
+            skipExisting: form.elements.skipExisting.checked,
+            rememberExtras: form.elements.rememberExtras.checked
+          };
+        }
+      },
+      {
+        action: "cancel",
+        label: "Cancel",
+        callback: () => null
+      }
+    ],
+    rejectClose: false
   });
-  return token.toObject();
-}));
-await scene.createEmbeddedDocuments("Token", tokenData);
 
-const skipped = actors.length - toPlace.length;
-ui.notifications.info(`Added ${toPlace.length} ${toPlace.length === 1 ? "token" : "tokens"} to ${scene.name}${skipped ? `; ${skipped} already present` : ""}.`);
+  if (!result) return;
+
+  if (result.rememberExtras) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(result.extraActorIds));
+  }
+
+  const selectedExtras = result.extraActorIds.map((id) => game.actors.get(id)).filter(Boolean);
+  const actors = Array.from(new Map([...partyActors, ...selectedExtras].map((actor) => [actor.id, actor])).values());
+
+  const existingActorIds = new Set(Array.from(scene.tokens).map((token) => token.actorId).filter(Boolean));
+  const actorsToPlace = result.skipExisting ? actors.filter((actor) => !existingActorIds.has(actor.id)) : actors;
+
+  if (!actorsToPlace.length) {
+    return ui.notifications.info("Every selected Actor already has a token on this scene.");
+  }
+
+  const tokenSources = actorsToPlace.map((actor) => {
+    const source = actor.prototypeToken.toObject();
+    delete source._id;
+    source.actorId = actor.id;
+    source.name ??= actor.name;
+    return { actor, source };
+  });
+
+  const gridSize = Number(scene.grid?.size ?? canvas.grid?.size ?? 100) || 100;
+  const maxWidth = Math.max(...tokenSources.map(({ source }) => Number(source.width) || 1));
+  const maxHeight = Math.max(...tokenSources.map(({ source }) => Number(source.height) || 1));
+  const cellWidth = (maxWidth + 1) * gridSize;
+  const cellHeight = (maxHeight + 1) * gridSize;
+  const columns = Math.min(5, Math.ceil(Math.sqrt(tokenSources.length)));
+  const rows = Math.ceil(tokenSources.length / columns);
+  const sceneWidth = Number(scene.width) || 4000;
+  const sceneHeight = Number(scene.height) || 3000;
+  const snap = (value) => Math.floor(value / gridSize) * gridSize;
+  const startX = Math.max(0, snap((sceneWidth - columns * cellWidth) / 2));
+  const startY = Math.max(0, snap((sceneHeight - rows * cellHeight) / 2));
+
+  const tokenData = tokenSources.map(({ source }, index) => {
+    const column = index % columns;
+    const row = Math.floor(index / columns);
+    const tokenWidth = (Number(source.width) || 1) * gridSize;
+    const tokenHeight = (Number(source.height) || 1) * gridSize;
+
+    source.x = Math.min(Math.max(0, startX + column * cellWidth), Math.max(0, sceneWidth - tokenWidth));
+    source.y = Math.min(Math.max(0, startY + row * cellHeight), Math.max(0, sceneHeight - tokenHeight));
+    return source;
+  });
+
+  await scene.createEmbeddedDocuments("Token", tokenData);
+  ui.notifications.info("Added " + tokenData.length + " token" + (tokenData.length === 1 ? "" : "s") + " to " + scene.name + ".");
+})();
