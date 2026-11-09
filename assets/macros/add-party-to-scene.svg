@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Add Party to Scene</title>
+  <desc id="desc">Three adventurers entering a map frame.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#103a3c"/><stop offset="1" stop-color="#091c24"/>
+    </linearGradient>
+    <linearGradient id="teal" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#9af2dd"/><stop offset="1" stop-color="#2eaa9a"/>
+    </linearGradient>
+  </defs>
+  <rect x="24" y="24" width="464" height="464" rx="92" fill="url(#bg)" stroke="#58d2bc" stroke-width="16"/>
+  <path d="M117 111h231l47 47v243H117V111Z" fill="#d8f1e7" stroke="url(#teal)" stroke-width="15" stroke-linejoin="round"/>
+  <path d="M348 111v52h47" fill="none" stroke="url(#teal)" stroke-width="15" stroke-linejoin="round"/>
+  <path d="m161 223 50-38 43 36 46-49 55 51M161 298l58-46 51 41 36-32 45 37" fill="none" stroke="#5ebdab" stroke-width="13" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/>
+  <circle cx="203" cy="327" r="25" fill="#eabf69" stroke="#17383a" stroke-width="9"/>
+  <path d="M160 397c3-48 23-71 43-71s40 23 43 71" fill="#eabf69" stroke="#17383a" stroke-width="9" stroke-linejoin="round"/>
+  <circle cx="305" cy="315" r="30" fill="#f4d787" stroke="#17383a" stroke-width="9"/>
+  <path d="M252 398c4-53 28-78 53-78s49 25 53 78" fill="#f4d787" stroke="#17383a" stroke-width="9" stroke-linejoin="round"/>
+  <path d="M305 247v58m-29-29h58" stroke="#f3ad38" stroke-width="17" stroke-linecap="round"/>
+</svg>

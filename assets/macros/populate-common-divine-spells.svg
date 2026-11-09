@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Populate Common Divine Spells</title>
+  <desc id="desc">A gold divine spellbook marked by a radiant star.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#34210d"/><stop offset="1" stop-color="#14100d"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff0a3"/><stop offset=".52" stop-color="#e5b94e"/><stop offset="1" stop-color="#9b5e12"/>
+    </linearGradient>
+  </defs>
+  <rect x="24" y="24" width="464" height="464" rx="92" fill="url(#bg)" stroke="#e5b94e" stroke-width="16"/>
+  <path d="M105 151c52-17 100-9 151 24v195c-51-33-99-41-151-24V151Z" fill="#f8e7ad" stroke="url(#gold)" stroke-width="13" stroke-linejoin="round"/>
+  <path d="M407 151c-52-17-100-9-151 24v195c51-33 99-41 151-24V151Z" fill="#f8e7ad" stroke="url(#gold)" stroke-width="13" stroke-linejoin="round"/>
+  <path d="M256 175v195" stroke="#9b5e12" stroke-width="11"/>
+  <path d="m256 191 13 37 37 13-37 13-13 37-13-37-37-13 37-13 13-37Zm0 99 9 25 25 9-25 9-9 25-9-25-25-9 25-9 9-25Z" fill="#b87913"/>
+  <path d="M128 198h77M128 232h77M307 198h77M307 232h77" stroke="#b87913" stroke-width="11" stroke-linecap="round" opacity=".72"/>
+</svg>
