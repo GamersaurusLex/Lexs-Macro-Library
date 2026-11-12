@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.4
+
+- Added **Open Award Panel** and **Basic Actions for a Token** with custom
+  hotbar icons. Both macros are GM-only.
+
 ## 0.1.3
 
 - Updated **Add Party to Scene** for Delta Green: it now places Actors from the

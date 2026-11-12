@@ -13,3 +13,6 @@ Current entries:
   Companion. In Delta Green, it places every Actor from the `Party` folder.
 - **WASD Movement Toggle** switches between Foundry's defaults and a movement
   layout using WASD, arrow keys, and the number pad.
+- **Open Award Panel** opens the Lex's Variant Rules award panel for the GM.
+- **Basic Actions for a Token** lets the GM pick a token on the viewed scene
+  and open PF2e Workbench's Basic Action Macros for it.
