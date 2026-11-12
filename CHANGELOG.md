@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.3
+
+- Updated **Add Party to Scene** for Delta Green: it now places Actors from the
+  `Party` folder and omits the PF2e familiar/companion picker.
+
 ## 0.1.2
 
 - Added purpose-built SVG icons for Add Party to Scene, Populate Common Divine
