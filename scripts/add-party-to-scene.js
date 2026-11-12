@@ -1,6 +1,7 @@
 (async () => {
   const STORAGE_KEY = "gamersauruslex.add-party-to-map." + game.world.id + "." + game.user.id;
   const scene = canvas?.scene;
+  const isDeltaGreen = game.system.id === "deltagreen";
 
   if (!game.user.isGM) {
     return ui.notifications.warn("Only a GM can add actors to a scene.");
@@ -27,22 +28,40 @@
     }
   };
 
-  const party = game.actors.party ?? game.actors.find((actor) => actor.type === "party");
+  let partyActors = [];
 
-  let partyActors = Array.from(party?.members ?? [])
-    .map((member) => member?.actor ?? member)
-    .filter((actor) => actor?.documentName === "Actor");
+  if (isDeltaGreen) {
+    const partyFolder = game.folders.find((folder) =>
+      folder.type === "Actor" && folder.name.trim().toLocaleLowerCase() === "party"
+    );
 
-  if (!partyActors.length) {
-    partyActors = game.actors.contents.filter((actor) => actor.type === "character" && actor.hasPlayerOwner);
-
-    if (partyActors.length) {
-      ui.notifications.warn("No PF2e Party actor was found. Using player-owned character Actors instead.");
+    if (!partyFolder) {
+      return ui.notifications.warn("I could not find an Actors folder named Party.");
     }
-  }
 
-  if (!partyActors.length) {
-    return ui.notifications.warn("I could not find a PF2e Party actor or any player-owned character Actors.");
+    partyActors = game.actors.contents.filter((actor) => actor.folder?.id === partyFolder.id);
+
+    if (!partyActors.length) {
+      return ui.notifications.warn("The Actors folder named Party does not contain any Actors.");
+    }
+  } else {
+    const party = game.actors.party ?? game.actors.find((actor) => actor.type === "party");
+
+    partyActors = Array.from(party?.members ?? [])
+      .map((member) => member?.actor ?? member)
+      .filter((actor) => actor?.documentName === "Actor");
+
+    if (!partyActors.length) {
+      partyActors = game.actors.contents.filter((actor) => actor.type === "character" && actor.hasPlayerOwner);
+
+      if (partyActors.length) {
+        ui.notifications.warn("No PF2e Party actor was found. Using player-owned character Actors instead.");
+      }
+    }
+
+    if (!partyActors.length) {
+      return ui.notifications.warn("I could not find a PF2e Party actor or any player-owned character Actors.");
+    }
   }
 
   const partyIds = new Set(partyActors.map((actor) => actor.id));
@@ -62,7 +81,7 @@
   const isSupplementalFolder = (actor) => /(familiar|companion)/i.test(folderPath(actor.folder));
 
   const extraActors = game.actors.contents
-    .filter((actor) => actor.type !== "party" && !partyIds.has(actor.id) && isSupplementalFolder(actor))
+    .filter((actor) => !isDeltaGreen && actor.type !== "party" && !partyIds.has(actor.id) && isSupplementalFolder(actor))
     .sort((a, b) => {
       const folderCompare = folderPath(a.folder).localeCompare(folderPath(b.folder));
       return folderCompare || a.name.localeCompare(b.name);
@@ -95,16 +114,18 @@
   }).join("");
 
   const content = "<div>" +
-    "<p>These party members will be added from their prototype tokens:</p>" +
+    (isDeltaGreen
+      ? "<p>These Actors from <strong>Actors → Party</strong> will be added from their prototype tokens:</p>"
+      : "<p>These party members will be added from their prototype tokens:</p>") +
     '<ul style="margin-top: 0;">' + partyList + "</ul>" +
-    "<hr>" +
-    "<p>Select any additional Actors to include—familiars, companions, thralls, mounts, summons, and so forth.</p>" +
-    '<div style="max-height: 330px; overflow-y: auto; padding-right: 0.35rem;">' +
-      (extraList || "<p><em>There are no additional Actors available.</em></p>") +
-    "</div>" +
-    "<hr>" +
+    (isDeltaGreen ? "" : "<hr>" +
+      "<p>Select any additional Actors to include—familiars, companions, thralls, mounts, summons, and so forth.</p>" +
+      '<div style="max-height: 330px; overflow-y: auto; padding-right: 0.35rem;">' +
+        (extraList || "<p><em>There are no additional Actors available.</em></p>") +
+      "</div>" +
+      "<hr>") +
     '<label style="display: block; margin: 0.35rem 0;"><input type="checkbox" name="skipExisting" checked> Skip Actors that already have a token on this scene</label>' +
-    '<label style="display: block; margin: 0.35rem 0;"><input type="checkbox" name="rememberExtras" checked> Remember these additional Actors for my next run</label>' +
+    (isDeltaGreen ? "" : '<label style="display: block; margin: 0.35rem 0;"><input type="checkbox" name="rememberExtras" checked> Remember these additional Actors for my next run</label>') +
   "</div>";
 
   const result = await foundry.applications.api.DialogV2.wait({
@@ -127,7 +148,7 @@
           return {
             extraActorIds: Array.from(form.querySelectorAll('input[name="extraActorIds"]:checked')).map((input) => input.value),
             skipExisting: form.elements.skipExisting.checked,
-            rememberExtras: form.elements.rememberExtras.checked
+            rememberExtras: form.elements.rememberExtras?.checked ?? false
           };
         }
       },
