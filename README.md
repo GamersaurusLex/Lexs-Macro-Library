@@ -16,3 +16,5 @@ Current entries:
 - **Open Award Panel** opens the Lex's Variant Rules award panel for the GM.
 - **Basic Actions for a Token** lets the GM pick a token on the viewed scene
   and open PF2e Workbench's Basic Action Macros for it.
+- **Recall Knowledge** opens Lex's Variant Rules' scene-aware subject and
+  target picker, then runs PF2e Workbench's normal Recall Knowledge workflow.

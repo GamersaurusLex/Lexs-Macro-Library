@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.5
+
+- Added **Recall Knowledge**, which opens Lex's Variant Rules' scene-aware
+  Recall Knowledge picker before running PF2e Workbench's normal Recall
+  Knowledge workflow.
+
 ## 0.1.4
 
 - Added **Open Award Panel** and **Basic Actions for a Token** with custom
