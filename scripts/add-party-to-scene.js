@@ -2,6 +2,7 @@
   const STORAGE_KEY = "gamersauruslex.add-party-to-map." + game.world.id + "." + game.user.id;
   const scene = canvas?.scene;
   const isDeltaGreen = game.system.id === "deltagreen";
+  const isDnd5e = game.system.id === "dnd5e";
 
   if (!game.user.isGM) {
     return ui.notifications.warn("Only a GM can add actors to a scene.");
@@ -30,7 +31,23 @@
 
   let partyActors = [];
 
-  if (isDeltaGreen) {
+  if (isDnd5e) {
+    const partyFolder = game.folders.find((folder) =>
+      folder.type === "Actor" && folder.name.trim().toLocaleLowerCase() === "the party"
+    );
+
+    if (!partyFolder) {
+      return ui.notifications.warn("I could not find an Actors folder named The Party.");
+    }
+
+    partyActors = game.actors.contents.filter((actor) =>
+      actor.folder?.id === partyFolder.id && actor.type === "character"
+    );
+
+    if (!partyActors.length) {
+      return ui.notifications.warn("The Actors folder named The Party does not contain any D&D character Actors.");
+    }
+  } else if (isDeltaGreen) {
     const partyFolder = game.folders.find((folder) =>
       folder.type === "Actor" && folder.name.trim().toLocaleLowerCase() === "party"
     );
@@ -114,8 +131,8 @@
   }).join("");
 
   const content = "<div>" +
-    (isDeltaGreen
-      ? "<p>These Actors from <strong>Actors → Party</strong> will be added from their prototype tokens:</p>"
+    (isDeltaGreen || isDnd5e
+      ? "<p>These Actors from <strong>Actors → " + (isDnd5e ? "The Party" : "Party") + "</strong> will be added from their prototype tokens:</p>"
       : "<p>These party members will be added from their prototype tokens:</p>") +
     '<ul style="margin-top: 0;">' + partyList + "</ul>" +
     (isDeltaGreen ? "" : "<hr>" +

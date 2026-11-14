@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.6
+
+- Fixed **Add Party to Scene** in D&D 5e: it now adds character Actors from
+  `Actors → The Party` rather than every player-owned character in the world.
+  Familiar and companion extras continue to be discovered from any matching
+  Actor folder, including `Familiars/Companions`.
+
 ## 0.1.5
 
 - Added **Recall Knowledge**, which opens Lex's Variant Rules' scene-aware
