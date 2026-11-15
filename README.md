@@ -16,7 +16,8 @@ Current entries:
 - **WASD Movement Toggle** switches between Foundry's defaults and a movement
   layout using WASD, arrow keys, and the number pad.
 - **Open Award Panel** opens the Lex's Variant Rules award panel for the GM.
-- **Basic Actions for a Token** lets the GM pick a token on the viewed scene
-  and open PF2e Workbench's Basic Action Macros for it.
+- **Advanced Action Macro** lets a GM pick any supported token on the
+  viewed scene, or lets a player pick one of their visible owned tokens, then
+  opens PF2e Workbench's Basic Action Macros for it.
 - **Recall Knowledge** opens Lex's Variant Rules' scene-aware subject and
   target picker, then runs PF2e Workbench's normal Recall Knowledge workflow.

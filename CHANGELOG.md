@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.7
+
+- **Advanced Action Macro** is now available to players, limited to
+  visible scene tokens they own. GMs can continue to choose any supported
+  token.
+
 ## 0.1.6
 
 - Fixed **Add Party to Scene** in D&D 5e: it now adds character Actors from
@@ -16,7 +22,7 @@
 ## 0.1.4
 
 - Added **Open Award Panel** and **Basic Actions for a Token** with custom
-  hotbar icons. Both macros are GM-only.
+  hotbar icons. Open Award Panel is GM-only.
 
 ## 0.1.3
 
