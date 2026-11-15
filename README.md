@@ -19,5 +19,5 @@ Current entries:
 - **Advanced Action Macro** lets a GM pick any supported token on the
   viewed scene, or lets a player pick one of their visible owned tokens, then
   opens PF2e Workbench's Basic Action Macros for it.
-- **Recall Knowledge** opens Lex's Variant Rules' scene-aware subject and
+- **Lex's Recall Knowledge** opens Lex's Variant Rules' scene-aware subject and
   target picker, then runs PF2e Workbench's normal Recall Knowledge workflow.

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.8
+
+- Renamed **Recall Knowledge** to **Lex's Recall Knowledge** and added a
+  purpose-built hotbar icon.
+
 ## 0.1.7
 
 - **Advanced Action Macro** is now available to players, limited to
