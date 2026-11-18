@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.9
+
+- Made **Advanced Action Macro** executable by players from hotbar copies.
+- Upgrades existing matching world macros to player-observer ownership when a
+  GM loads the module.
+
 ## 0.1.8
 
 - Renamed **Recall Knowledge** to **Lex's Recall Knowledge** and added a
