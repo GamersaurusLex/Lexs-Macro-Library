@@ -12,7 +12,9 @@ Current entries:
   prototype tokens. In PF2e, it uses the Party actor; in D&D 5e, it uses
   character Actors from the `The Party` folder; in Delta Green, it places every Actor from the
   `Party` folder. In PF2e and D&D 5e, it offers extras from any Actor folder
-  whose name includes Familiar or Companion.
+  whose name includes Familiar or Companion. Newly placed tokens start in a
+  bottom-center line, one grid square in from the scene edge; very wide
+  groups wrap into rows above it.
 - **WASD Movement Toggle** switches between Foundry's defaults and a movement
   layout using WASD, arrow keys, and the number pad.
 - **Open Award Panel** opens the Lex's Variant Rules award panel for the GM.

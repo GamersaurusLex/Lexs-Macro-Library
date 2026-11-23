@@ -203,28 +203,41 @@
   });
 
   const gridSize = Number(scene.grid?.size ?? canvas.grid?.size ?? 100) || 100;
-  const maxWidth = Math.max(...tokenSources.map(({ source }) => Number(source.width) || 1));
-  const maxHeight = Math.max(...tokenSources.map(({ source }) => Number(source.height) || 1));
-  const cellWidth = (maxWidth + 1) * gridSize;
-  const cellHeight = (maxHeight + 1) * gridSize;
-  const columns = Math.min(5, Math.ceil(Math.sqrt(tokenSources.length)));
-  const rows = Math.ceil(tokenSources.length / columns);
   const sceneWidth = Number(scene.width) || 4000;
   const sceneHeight = Number(scene.height) || 3000;
   const snap = (value) => Math.floor(value / gridSize) * gridSize;
-  const startX = Math.max(0, snap((sceneWidth - columns * cellWidth) / 2));
-  const startY = Math.max(0, snap((sceneHeight - rows * cellHeight) / 2));
+  const edgeInset = gridSize;
+  const gap = gridSize;
+  const placedRows = [[]];
+  let rowWidth = 0;
 
-  const tokenData = tokenSources.map(({ source }, index) => {
-    const column = index % columns;
-    const row = Math.floor(index / columns);
-    const tokenWidth = (Number(source.width) || 1) * gridSize;
-    const tokenHeight = (Number(source.height) || 1) * gridSize;
+  // Keep the party in one centered line at the bottom whenever it fits. Only
+  // wrap upward when a scene is genuinely too narrow for the selected tokens.
+  for (const entry of tokenSources) {
+    const width = (Number(entry.source.width) || 1) * gridSize;
+    const required = rowWidth ? gap + width : width;
+    if (rowWidth && rowWidth + required > sceneWidth - edgeInset * 2) {
+      placedRows.push([]);
+      rowWidth = 0;
+    }
+    placedRows.at(-1).push({ ...entry, width, height: (Number(entry.source.height) || 1) * gridSize });
+    rowWidth += rowWidth ? gap + width : width;
+  }
 
-    source.x = Math.min(Math.max(0, startX + column * cellWidth), Math.max(0, sceneWidth - tokenWidth));
-    source.y = Math.min(Math.max(0, startY + row * cellHeight), Math.max(0, sceneHeight - tokenHeight));
-    return source;
-  });
+  const tokenData = [];
+  let bottomY = sceneHeight - edgeInset;
+  for (const row of placedRows) {
+    const rowHeight = Math.max(...row.map((entry) => entry.height));
+    const totalWidth = row.reduce((total, entry) => total + entry.width, 0) + gap * Math.max(0, row.length - 1);
+    let x = Math.max(edgeInset, snap((sceneWidth - totalWidth) / 2));
+    for (const { source, width, height } of row) {
+      source.x = Math.min(Math.max(0, x), Math.max(0, sceneWidth - width));
+      source.y = Math.min(Math.max(0, bottomY - height), Math.max(0, sceneHeight - height));
+      tokenData.push(source);
+      x += width + gap;
+    }
+    bottomY -= rowHeight + gap;
+  }
 
   await scene.createEmbeddedDocuments("Token", tokenData);
   ui.notifications.info("Added " + tokenData.length + " token" + (tokenData.length === 1 ? "" : "s") + " to " + scene.name + ".");

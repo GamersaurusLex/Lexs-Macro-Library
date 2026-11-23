@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.10
+
+- Updated **Add Party to Scene** to arrange newly placed party tokens in a
+  bottom-center line, one grid square in from the scene edge. Extra-wide
+  parties wrap into additional rows above it.
+
 ## 0.1.9
 
 - Made **Advanced Action Macro** executable by players from hotbar copies.
